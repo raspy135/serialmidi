@@ -2,7 +2,7 @@
 This script will establish Serial to MIDI bridge.
 It will be useful with micro controller boards such as Arduino, ESP32.
 
-I made this since useful Hairless MIDI Serial bridge program stopped working with OS X Catalina.
+I made this since useful [Hairless MIDI Serial bridge](https://github.com/projectgus/hairless-midiserial) program stopped working with OS X Catalina.
 
 I can process most of MIDI messages and latency can be adjusted. I could archive very low latency (probably less than 5ms) so far.
 
