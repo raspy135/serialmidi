@@ -4,7 +4,7 @@ It will be useful with micro controller boards such as Arduino, ESP32.
 
 I made this since useful [Hairless MIDI Serial bridge](https://github.com/projectgus/hairless-midiserial) program stopped working with OS X Catalina.
 
-I can process most of MIDI messages and latency can be adjusted. I could archive very low latency (probably less than 5ms) so far.
+It processes most of MIDI messages. Latency can be adjusted. I could archive very low latency (probably less than 5ms) so far.
 
 ## Quickstart
 ```
@@ -15,7 +15,7 @@ I can process most of MIDI messages and latency can be adjusted. I could archive
 # For MIDI controller, set lower value to out_latency and higher value to in_latency.
 #
 ```
-The script will put a list of device names. This can be used for --midi_in_name and midi_out_name.
+The script will put a list of device names. Use the listed name for --midi_in_name and midi_out_name.
 
 ### Requirements
 
