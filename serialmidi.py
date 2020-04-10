@@ -82,23 +82,21 @@ def serial_watcher():
         data = ser.read()
         if data:
             for elem in data:
-                receiving_message.put(elem)
-
+                receiving_message.append(elem)
             #Running status
             if len(receiving_message) == 1:
-                if receiving_message[0]&0xf0 != 0:
+                if (receiving_message[0]&0xf0) != 0:
                     running_status = receiving_message[0]
                 else:
                     receiving_message = [ running_status, receiving_message[0] ]
 
-                
             message_length = get_midi_length(receiving_message)
             if message_length <= len(receiving_message):
                 logging.debug(receiving_message)
                 midiout_message_queue.put(receiving_message)
-                receiving_message.empty()
+                receiving_message = []
 
-        if midiin_message_queue:
+        if midiin_message_queue.empty() == False:
             message = midiin_message_queue.get()
             logging.debug(message)
             value = bytearray(message)
@@ -148,8 +146,8 @@ def midi_watcher():
 
     while(True):
         time.sleep(out_latency) #MIDI out (Serial -> CoreMIDI) latency
-        if midiout_message_queue:
-            message=midiout_message_queue.get()
+        if midiout_message_queue.empty() == False:
+            message = midiout_message_queue.get()
             midiout.send_message(message)
 
 
