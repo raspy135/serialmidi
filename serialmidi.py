@@ -9,19 +9,16 @@ import time
 import argparse
 
 # Serial MIDI Bridge
-# Tested with Mac OX X Catalina and ESP32
-# Example
-# python3 serialmidi.py --serial_name=/dev/cu.SLAB_USBtoUART --midi_in_name="IAC Bus 1" --midi_out_name="IAC Bus 2"
-#
+# Ryan Kojima
 
 
 parser = argparse.ArgumentParser(description = "Serial MIDI bridge")
 
-parser.add_argument("--serial_name", type=str)
-parser.add_argument("--baud", type=int, default=115200)
+parser.add_argument("--serial_name", type=str, required = True, help = "Serial port name. Required")
+parser.add_argument("--baud", type=int, default=115200, help = "baud rate. Default is 115200")
 parser.add_argument("--midi_in_name", type=str, default = "IAC Bus 1")
 parser.add_argument("--midi_out_name", type=str, default = "IAC Bus 2")
-parser.add_argument("--debug", action = "store_true")
+parser.add_argument("--debug", action = "store_true", help = "Print incoming / outgoing MIDI signals")
 
 args = parser.parse_args()
 
@@ -123,8 +120,8 @@ def midi_watcher():
     midiout = rtmidi.MidiOut()
     available_ports_out = midiout.get_ports()
     available_ports_in = midiin.get_ports()
-    logging.info("IN : " + " , ".join(available_ports_in))
-    logging.info("OUT : " + " , ".join(available_ports_out))
+    logging.info("IN : '" + "','".join(available_ports_in) + "'")
+    logging.info("OUT : '" + "','".join(available_ports_out) + "'")
     logging.info("Hit ctrl-c to exit")
 
     port_index_in = -1
@@ -136,8 +133,11 @@ def midi_watcher():
         if given_port_name_out in s:
             port_index_out = i
 
+    if port_index_in == -1:
+        print("MIDI IN Device name is incorrect. Please use listed device name.")
+    if port_index_out == -1:
+        print("MIDI OUT Device name is incorrect. Please use listed device name.")
     if port_index_in == -1 or port_index_out == -1:
-        print("MIDI Device name is incorrect. Please use listed device name.")
         thread_running = False
         midi_ready = True
         sys.exit()
