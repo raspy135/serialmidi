@@ -8,12 +8,7 @@ It processes most of MIDI messages. Latency can be adjusted. I could archive ver
 
 ## Quickstart
 ```
-# Serial MIDI Bridge
-# Tested with Mac OX X Catalina and ESP32
-# Example (For synthesizer, input latency is critical)
-# python3 serialmidi.py --serial_name=/dev/cu.SLAB_USBtoUART --midi_in_name="IAC Bus 1" --midi_out_name="IAC Bus 2" --in_latency=0.001 --out_latency=0.05
-# For MIDI controller, set lower value to out_latency and higher value to in_latency.
-#
+$ python3 serialmidi.py --serial_name=/dev/cu.SLAB_USBtoUART --midi_in_name="IAC Bus 1" --midi_out_name="IAC Bus 2"
 ```
 The script will put a list of device names. Use the listed name for --midi_in_name and midi_out_name.
 
