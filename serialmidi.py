@@ -10,8 +10,8 @@ import argparse
 
 # Serial MIDI Bridge
 # Tested with Mac OX X Catalina and ESP32
-# Example (For synthesizer, input latency is critical)
-# python3 serialmidi.py --serial_name=/dev/cu.SLAB_USBtoUART --midi_in_name="IAC Bus 1" --midi_out_name="IAC Bus 2" --in_latency=0.001 --out_latency=0.05
+# Example
+# python3 serialmidi.py --serial_name=/dev/cu.SLAB_USBtoUART --midi_in_name="IAC Bus 1" --midi_out_name="IAC Bus 2"
 # For MIDI controller, set lower value to out_latency and higher value to in_latency.
 #
 
@@ -20,8 +20,6 @@ parser = argparse.ArgumentParser(description = "Serial MIDI bridge")
 
 parser.add_argument("--serial_name", type=str)
 parser.add_argument("--baud", type=int, default=115200)
-parser.add_argument("--out_latency", type=float, default=0.01, help="Output (Serial->MIDI) max latency in sec. Lower latency may use more CPU power.")
-parser.add_argument("--in_latency", type=float, default=0.01, help="Input (MIDI->Serial) max latency in sec. Lower latency may use more CPU power.")
 parser.add_argument("--midi_in_name", type=str, default = "IAC Bus 1")
 parser.add_argument("--midi_out_name", type=str, default = "IAC Bus 2")
 parser.add_argument("--debug", action = "store_true")
@@ -33,9 +31,6 @@ args = parser.parse_args()
 # Arguments
 serial_port_name = args.serial_name #'/dev/cu.SLAB_USBtoUART'
 serial_baud = args.baud
-# Low latency = more CPU power
-out_latency = args.out_latency #0.05
-in_latency = args.in_latency #0.001
 given_port_name_in = args.midi_in_name #"IAC Bus 1"
 given_port_name_out = args.midi_out_name #"IAC Bus 2"
 
@@ -46,7 +41,7 @@ else:
 
 ser = serial.Serial(serial_port_name,serial_baud)
 
-ser.timeout = in_latency
+# ser.timeout = in_latency
 
 midiin_message_queue = queue.Queue()
 midiout_message_queue = queue.Queue()
@@ -73,6 +68,12 @@ def get_midi_length(message):
 
     return 100
 
+def serial_writer():
+    while True:
+        message = midiin_message_queue.get()
+        logging.debug(message)
+        value = bytearray(message)
+        ser.write(value)
 
 def serial_watcher():
     receiving_message = []
@@ -96,11 +97,6 @@ def serial_watcher():
                 midiout_message_queue.put(receiving_message)
                 receiving_message = []
 
-        if midiin_message_queue.empty() == False:
-            message = midiin_message_queue.get()
-            logging.debug(message)
-            value = bytearray(message)
-            ser.write(value)
 
 
 class midi_input_handler(object):
@@ -122,6 +118,7 @@ def midi_watcher():
     available_ports_in = midiin.get_ports()
     logging.info("IN : " + " , ".join(available_ports_in))
     logging.info("OUT : " + " , ".join(available_ports_out))
+    logging.info("Hit ctrl-c to exit")
 
     for i, s in enumerate(available_ports_in):
         if given_port_name_in in s:
@@ -145,15 +142,15 @@ def midi_watcher():
     midiin.set_callback(midi_input_handler(in_port_name))
 
     while(True):
-        time.sleep(out_latency) #MIDI out (Serial -> CoreMIDI) latency
-        if midiout_message_queue.empty() == False:
-            message = midiout_message_queue.get()
-            midiout.send_message(message)
+        message = midiout_message_queue.get()
+        midiout.send_message(message)
 
 
 
 s_watcher = threading.Thread(target = serial_watcher)
+s_writer = threading.Thread(target = serial_writer)
 m_watcher = threading.Thread(target = midi_watcher)
 
 s_watcher.start()
+s_writer.start()
 m_watcher.start()
