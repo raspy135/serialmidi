@@ -12,7 +12,6 @@ import argparse
 # Tested with Mac OX X Catalina and ESP32
 # Example
 # python3 serialmidi.py --serial_name=/dev/cu.SLAB_USBtoUART --midi_in_name="IAC Bus 1" --midi_out_name="IAC Bus 2"
-# For MIDI controller, set lower value to out_latency and higher value to in_latency.
 #
 
 
