@@ -38,10 +38,7 @@ if args.debug:
 else:
     logging.basicConfig(level = logging.INFO)
 
-ser = serial.Serial(serial_port_name,serial_baud)
-
-ser.timeout = 0.1
-
+midi_ready = False
 midiin_message_queue = queue.Queue()
 midiout_message_queue = queue.Queue()
 
@@ -68,9 +65,11 @@ def get_midi_length(message):
     return 100
 
 def serial_writer():
+    while midi_ready == False:
+        sleep(0.1)
     while thread_running:
         try:
-            message = midiin_message_queue.get(timeout=0.1)
+            message = midiin_message_queue.get(timeout=0.4)
         except queue.Empty:
             continue
         logging.debug(message)
@@ -80,6 +79,9 @@ def serial_writer():
 def serial_watcher():
     receiving_message = []
     running_status = 0
+
+    while midi_ready == False:
+        sleep(0.1)
 
     while thread_running:
         data = ser.read()
@@ -113,6 +115,7 @@ class midi_input_handler(object):
         midiin_message_queue.put(message)
 
 
+
 def midi_watcher():
     midiin = rtmidi.MidiIn()
     midiout = rtmidi.MidiOut()
@@ -122,12 +125,18 @@ def midi_watcher():
     logging.info("OUT : " + " , ".join(available_ports_out))
     logging.info("Hit ctrl-c to exit")
 
+    port_index_in = -1
+    port_index_out = -1
     for i, s in enumerate(available_ports_in):
         if given_port_name_in in s:
             port_index_in = i
     for i, s in enumerate(available_ports_out):
         if given_port_name_out in s:
             port_index_out = i
+
+    if port_index_in == -1 or port_index_out == -1:
+        print("MIDI Device name is incorrect. Please use listed device name.")
+        sys.exit()
 
     if available_ports_out:
         midiout.open_port(port_index_out)
@@ -140,17 +149,27 @@ def midi_watcher():
         print("No input device detected")
         sys.exit()
 
+    midi_ready = True
+
     midiin.ignore_types(sysex = False, timing = False, active_sense = False)
     midiin.set_callback(midi_input_handler(in_port_name))
 
     while thread_running:
         try:
-            message = midiout_message_queue.get(timeout = 0.1)
+            message = midiout_message_queue.get(timeout = 0.4)
         except queue.Empty:
             continue
         midiout.send_message(message)
 
 
+try:
+    ser = serial.Serial(serial_port_name,serial_baud)
+except serial.serialutil.SerialException:
+    print("Serial port opening error.")
+    midi_watcher()
+    sys.exit()
+
+ser.timeout = 0.4
 
 s_watcher = threading.Thread(target = serial_watcher)
 s_writer = threading.Thread(target = serial_writer)
