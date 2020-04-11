@@ -117,6 +117,8 @@ class midi_input_handler(object):
 
 
 def midi_watcher():
+    global midi_ready, thread_running
+
     midiin = rtmidi.MidiIn()
     midiout = rtmidi.MidiOut()
     available_ports_out = midiout.get_ports()
