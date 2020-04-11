@@ -142,16 +142,8 @@ def midi_watcher():
         midi_ready = True
         sys.exit()
 
-    if available_ports_out:
-        midiout.open_port(port_index_out)
-    else:
-        print("No output device detected")
-        sys.exit()
-    if available_ports_in:
-        in_port_name = midiin.open_port(port_index_in)
-    else:
-        print("No input device detected")
-        sys.exit()
+    midiout.open_port(port_index_out)
+    in_port_name = midiin.open_port(port_index_in)
 
     midi_ready = True
 
