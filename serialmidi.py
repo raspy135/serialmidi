@@ -66,7 +66,7 @@ def get_midi_length(message):
 
 def serial_writer():
     while midi_ready == False:
-        sleep(0.1)
+        time.sleep(0.1)
     while thread_running:
         try:
             message = midiin_message_queue.get(timeout=0.4)
@@ -81,7 +81,7 @@ def serial_watcher():
     running_status = 0
 
     while midi_ready == False:
-        sleep(0.1)
+        time.sleep(0.1)
 
     while thread_running:
         data = ser.read()
