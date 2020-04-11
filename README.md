@@ -27,13 +27,23 @@ $ python.exe .\serialmidi.py --serial_name=COM4 --midi_in_name="loopMIDI Port IN
 
 ## setup
 
-1. Run `serialmidi.py`
+1. Run `serialmidi.py -h` to see this help.
 ```
-$ python serialmidi.py
+$ python3 serialmidi.py -h
 usage: serialmidi.py [-h] --serial_name SERIAL_NAME [--baud BAUD]
                      [--midi_in_name MIDI_IN_NAME]
                      [--midi_out_name MIDI_OUT_NAME] [--debug]
-serialmidi.py: error: argument --serial_name is required
+
+Serial MIDI bridge
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --serial_name SERIAL_NAME
+                        Serial port name. Required
+  --baud BAUD           baud rate. Default is 115200
+  --midi_in_name MIDI_IN_NAME
+  --midi_out_name MIDI_OUT_NAME
+  --debug               Print incoming / outgoing MIDI signals
 ```
 
 2. Figure out serial port name and baud rate. Baud rate default is 115200.
