@@ -43,7 +43,7 @@ serialmidi.py: error: argument --serial_name is required
 INFO:root:IN : 'IAC Bus 1','IAC Bus 2'
 INFO:root:OUT : 'IAC Bus 1','IAC Bus 2'
 ```
-You may want to use MIDI loop bus such as IAC Bus for OS X, or [loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html) for Windows. ALso, you need to use different bus in order to avoid signal loop.
+You may want to use MIDI loop bus such as IAC Bus for OS X, or [loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html) for Windows. Also, you need to use different bus in order to avoid signal loop.
 
 5. If it is not working, try `--debug` option. It will dump all incoming / outgoing MIDI messages. Or create an issue on the GitHub page.
 
