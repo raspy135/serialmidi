@@ -26,7 +26,7 @@ parser.add_argument("--debug", action = "store_true")
 
 args = parser.parse_args()
 
-
+thread_running = True
 
 # Arguments
 serial_port_name = args.serial_name #'/dev/cu.SLAB_USBtoUART'
@@ -41,7 +41,7 @@ else:
 
 ser = serial.Serial(serial_port_name,serial_baud)
 
-# ser.timeout = in_latency
+ser.timeout = 0.1
 
 midiin_message_queue = queue.Queue()
 midiout_message_queue = queue.Queue()
@@ -69,8 +69,11 @@ def get_midi_length(message):
     return 100
 
 def serial_writer():
-    while True:
-        message = midiin_message_queue.get()
+    while thread_running:
+        try:
+            message = midiin_message_queue.get(timeout=0.1)
+        except queue.Empty:
+            continue
         logging.debug(message)
         value = bytearray(message)
         ser.write(value)
@@ -79,7 +82,7 @@ def serial_watcher():
     receiving_message = []
     running_status = 0
 
-    while(True):
+    while thread_running:
         data = ser.read()
         if data:
             for elem in data:
@@ -141,8 +144,11 @@ def midi_watcher():
     midiin.ignore_types(sysex = False, timing = False, active_sense = False)
     midiin.set_callback(midi_input_handler(in_port_name))
 
-    while(True):
-        message = midiout_message_queue.get()
+    while thread_running:
+        try:
+            message = midiout_message_queue.get(timeout = 0.1)
+        except queue.Empty:
+            continue
         midiout.send_message(message)
 
 
@@ -154,3 +160,12 @@ m_watcher = threading.Thread(target = midi_watcher)
 s_watcher.start()
 s_writer.start()
 m_watcher.start()
+
+#Ctrl-C handler
+try:
+    while True:
+        time.sleep(1)
+except KeyboardInterrupt:
+    print("Terminating.")
+    thread_running = False
+    sys.exit(0)
