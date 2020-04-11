@@ -136,6 +136,8 @@ def midi_watcher():
 
     if port_index_in == -1 or port_index_out == -1:
         print("MIDI Device name is incorrect. Please use listed device name.")
+        thread_running = False
+        midi_ready = True
         sys.exit()
 
     if available_ports_out:
