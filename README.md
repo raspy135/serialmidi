@@ -4,7 +4,7 @@ It will be useful with micro controller boards such as Arduino, ESP32, they only
 
 I made this since useful [Hairless MIDI Serial bridge](https://github.com/projectgus/hairless-midiserial) program stopped working with OS X Catalina.
 
-It processes most of MIDI messages. I could archive very low latency (probably less than 5ms) so far.
+It processes most of MIDI messages. It has only very low latency (probably less than 5ms) so far.
 
 ### Requirements / Installation
 
