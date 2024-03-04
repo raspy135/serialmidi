@@ -19,6 +19,7 @@ parser.add_argument("--baud", type=int, default=115200, help = "baud rate. Defau
 parser.add_argument("--midi_in_name", type=str, default = "IAC Bus 1")
 parser.add_argument("--midi_out_name", type=str, default = "IAC Bus 2")
 parser.add_argument("--debug", action = "store_true", help = "Print incoming / outgoing MIDI signals")
+parser.add_argument("--string", action = "store_true", help = "Print sysEx logging message (For Qun Mk2)")
 
 args = parser.parse_args()
 
@@ -96,7 +97,16 @@ def serial_watcher():
             if message_length <= len(receiving_message):
                 logging.debug(receiving_message)
                 midiout_message_queue.put(receiving_message)
-                receiving_message = []
+
+                if args.string:
+                    if receiving_message[0] == 0xf0:
+                        print_message = []
+                        for elem in receiving_message:
+                            if elem < 0xf0:
+                                print_message.append(chr(elem))
+                        print_message_str = ''.join(print_message)
+                        print(print_message_str)
+                    receiving_message = []
 
 
 
