@@ -106,7 +106,8 @@ def serial_watcher():
                                 print_message.append(chr(elem))
                         print_message_str = ''.join(print_message)
                         print(print_message_str)
-                    receiving_message = []
+
+                receiving_message = []
 
 
 
