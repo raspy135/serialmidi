@@ -157,9 +157,36 @@ def serial_watcher():
     while thread_running:
         data = ser.read()
         if data:
+<<<<<<< HEAD
             receiving_message, running_status, messages = process_serial_data(data, receiving_message, running_status)
             for msg in messages:
                 midiout_message_queue.put(msg)
+=======
+            for elem in data:
+                receiving_message.append(elem)
+            #Running status
+            if len(receiving_message) == 1:
+                if (receiving_message[0]&0xf0) != 0:
+                    running_status = receiving_message[0]
+                else:
+                    receiving_message = [ running_status, receiving_message[0] ]
+
+            message_length = get_midi_length(receiving_message)
+            if message_length <= len(receiving_message):
+                logging.debug(receiving_message)
+                midiout_message_queue.put(receiving_message)
+
+                if args.string:
+                    if receiving_message[0] == 0xf0:
+                        print_message = []
+                        for elem in receiving_message:
+                            if elem < 0xf0:
+                                print_message.append(chr(elem))
+                        print_message_str = ''.join(print_message)
+                        print(print_message_str)
+
+                receiving_message = []
+>>>>>>> 8617802439f2f2f363f030a36ac4f23f4c0aba99
 
 
 
