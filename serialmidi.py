@@ -58,15 +58,19 @@ if args.debug:
 else:
     logging.basicConfig(level=logging.INFO)
 
+ser = None # Will be initialized in main
+
 midi_ready = False
 midiin_message_queue = queue.Queue()
 midiout_message_queue = queue.Queue()
+
 
 
 def get_midi_length(message):
     if len(message) == 0:
         return 100
     opcode = message[0]
+
     if opcode >= 0xf4:
         return 1
     if opcode in [0xf1, 0xf3]:
@@ -99,6 +103,43 @@ def serial_writer():
         ser.write(value)
 
 
+def process_serial_data(data, receiving_message, running_status):
+    completed_messages = []
+    for elem in data:
+        # System Real-Time messages (0xF8 - 0xFF) can be interleaved anywhere
+        # and should be processed immediately without affecting current message or running status.
+        if elem >= 0xf8:
+            completed_messages.append([elem])
+            continue
+
+        receiving_message.append(elem)
+        # Running status
+        if len(receiving_message) > 0:
+            if receiving_message[0] >= 0x80:
+                if receiving_message[0] < 0xf0:
+                    running_status = receiving_message[0]
+                else:
+                    running_status = 0 # System common items reset running status.
+            else:
+                if running_status != 0:
+                    receiving_message.insert(0, running_status)
+
+        message_length = get_midi_length(receiving_message)
+        if message_length <= len(receiving_message):
+            logging.debug(receiving_message)
+            completed_messages.append(receiving_message)
+
+            if args.string:
+                if receiving_message[0] == 0xf0:
+                    print_message = []
+                    for elem in receiving_message:
+                        if elem < 0xf0:
+                            print_message.append(chr(elem))
+                    print_message_str = ''.join(print_message)
+                    print(print_message_str)
+            receiving_message = []
+    return receiving_message, running_status, completed_messages
+
 def serial_watcher():
     receiving_message = []
     running_status = 0
@@ -109,29 +150,9 @@ def serial_watcher():
     while thread_running:
         data = ser.read()
         if data:
-            for elem in data:
-                receiving_message.append(elem)
-            # Running status
-            if len(receiving_message) == 1:
-                if (receiving_message[0] & 0xf0) != 0:
-                    running_status = receiving_message[0]
-                else:
-                    receiving_message = [running_status, receiving_message[0]]
-
-            message_length = get_midi_length(receiving_message)
-            if message_length <= len(receiving_message):
-                logging.debug(receiving_message)
-                midiout_message_queue.put(receiving_message)
-
-                if args.string:
-                    if receiving_message[0] == 0xf0:
-                        print_message = []
-                        for elem in receiving_message:
-                            if elem < 0xf0:
-                                print_message.append(chr(elem))
-                        print_message_str = ''.join(print_message)
-                        print(print_message_str)
-                    receiving_message = []
+            receiving_message, running_status, messages = process_serial_data(data, receiving_message, running_status)
+            for msg in messages:
+                midiout_message_queue.put(msg)
 
 
 class MidiInputHandler(object):
@@ -198,34 +219,38 @@ def midi_watcher():
         midiout.send_message(message)
 
 
-try:
-    ser = serial.Serial(serial_port_name, serial_baud)
-except serial.serialutil.SerialException as e:
-    if e.errno == 16:
-        print('Serial port is busy')
-        sys.exit()
+def main():
+    global ser, midi_ready, thread_running
+    try:
+        ser = serial.Serial(serial_port_name, serial_baud)
+    except serial.serialutil.SerialException as e:
+        if e.errno == 16:
+            print('Serial port is busy')
+            sys.exit()
+        else:
+            print("Serial port opening error occurred:", e)
+            sys.exit()
     else:
-        print("Serial port opening error occurred:", e)
-        sys.exit()
-else:
-    print(f'Serial port connected successfully: {serial_port_name}')
+        print(f'Serial port connected successfully: {serial_port_name}')
 
+    ser.timeout = 0.4
 
-ser.timeout = 0.4
+    s_watcher = threading.Thread(target=serial_watcher)
+    s_writer = threading.Thread(target=serial_writer)
+    m_watcher = threading.Thread(target=midi_watcher)
 
-s_watcher = threading.Thread(target=serial_watcher)
-s_writer = threading.Thread(target=serial_writer)
-m_watcher = threading.Thread(target=midi_watcher)
+    s_watcher.start()
+    s_writer.start()
+    m_watcher.start()
 
-s_watcher.start()
-s_writer.start()
-m_watcher.start()
+    # Ctrl-C handler
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("Terminating.")
+        thread_running = False
+        sys.exit(0)
 
-# Ctrl-C handler
-try:
-    while True:
-        time.sleep(1)
-except KeyboardInterrupt:
-    print("Terminating.")
-    thread_running = False
-    sys.exit(0)
+if __name__ == "__main__":
+    main()
