@@ -63,6 +63,14 @@ You may want to use MIDI loop bus such as IAC Bus for OS X, or [loopMIDI](https:
 ### Tested environment
 - Tested with OS X Catalina with ESP32 board, and Windows10 with loopMIDI.
 
+## Notification for Windows users
+
+Feb 18, 2026: Windows users might face issues with loopMIDI.
+
+https://devblogs.microsoft.com/windows-music-dev/windows-midi-services-rollout-known-issues-and-workarounds/
+
+Workaround is restarting midi service then launch loopMIDI again.
+
 ### Other notes
 - It's made for my ESP32 based synthesizer, so I tested MIDI IN a lot, but MIDI OUT. MIDI OUT message processing might have some bugs. Please let me know if you find it.
 
