@@ -46,8 +46,10 @@ optional arguments:
   --debug               Print incoming / outgoing MIDI signals
 ```
 
-2. Figure out serial port name and baud rate. Baud rate default is 115200.
+2. Figure out serial port name and baud rate. Baud rate default is 115200. Standard MIDI baud rate is 31250.
+
 3. Run `serialmidi.py --serial_name=[serial_port] --baud=[baud]`. Make sure it doesn't say "Serial port opening error.".
+
 4. The script prints recognized MIDI devices. Use one of listed name as argument of `--midi_in_name` and `--midi_out_name`. Here is an example on OS X.
 ```
 INFO:root:IN : 'IAC Bus 1','IAC Bus 2'
